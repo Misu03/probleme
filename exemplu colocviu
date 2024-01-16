@@ -1,0 +1,123 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct node{
+    char nume[30];
+    int an;
+    int luna;
+    int ziua;
+    int major;
+    struct node *next;
+};
+
+struct hashtable{
+    struct node **entries;
+    int size;
+};
+
+size_t hash(char *nume, int table_size)
+{
+    int sum = 0;
+    for (int i = 0 ; i < strlen(nume) ; i++)
+    {
+        sum += nume[i];
+    }
+    return sum % table_size;
+}
+
+void inserare(struct hashtable *table, char *nume, int an, int luna, int ziua)
+{
+    int i = hash(nume, table->size);
+    struct node *nod = malloc(sizeof(struct node));
+    strcpy(nod->nume, nume);
+    nod->an = an;
+    nod->luna = luna;
+    nod->ziua = ziua;
+    if (2024 - an < 18)
+    {
+        nod->major = 0;
+    }
+    else if (2024 - an > 18)
+    {
+        nod->major = 1;
+    }
+    else if (2024 - an == 18)
+    {
+        if (luna >= 2)
+        {
+            nod->major = 0;
+        }
+        else
+        {
+            if (ziua >= 17)
+            {
+                nod->major = 0;
+            }
+            else
+            {
+                nod->major = 1;
+            }
+        }
+    }
+    nod->next = NULL;
+    if (table->entries[i] == NULL)
+    {
+        table->entries[i] = nod;
+    }
+    else
+    {
+        struct node *tmp = table->entries[i];
+        while (tmp->next != NULL)
+        {
+            tmp = tmp->next;
+        }
+        tmp->next = nod;
+    }
+}
+
+void afisare (struct hashtable *table)
+{
+    for (int i = 0 ; i < table->size ; i++)
+    {
+        if (table->entries[i] != NULL)
+        {
+            struct node *tmp = table->entries[i];
+            while (tmp != NULL)
+            {
+                if (tmp->major == 1)
+                {
+                    printf ("%s %d %d %d\n", tmp->nume, tmp->an, tmp->luna, tmp->ziua);
+                }
+                else
+                {
+                    printf ("%s Minor\n", tmp->nume);
+                }
+                tmp = tmp->next;
+            }
+        }
+    }
+}
+
+int main()
+{
+    int n, nr_utilizatori;
+    scanf ("%d %d", &n, &nr_utilizatori);
+    struct hashtable *table = malloc(sizeof(struct hashtable));
+    table->size = n;
+    table->entries = malloc(n * sizeof(struct node));
+    int an, luna, ziua;
+    char nume[30];
+    for (int i = 0 ; i < nr_utilizatori ; i++)
+    {
+        scanf("%s %d %d %d", nume, &an, &luna, &ziua);
+        inserare(table, nume, an, luna, ziua);
+    }
+    int test;
+    scanf ("%d", &test);
+    if (test == 1)
+    {
+        afisare(table);
+    }
+    return 0;
+}
