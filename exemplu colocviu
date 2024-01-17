@@ -13,32 +13,41 @@ struct node{
 
 struct hashtable{
     struct node **entries;
-    int size;
 };
 
-size_t hash(char *nume, int table_size)
+size_t hash (char *nume, int size)
 {
     int sum = 0;
     for (int i = 0 ; i < strlen(nume) ; i++)
     {
         sum += nume[i];
     }
-    return sum % table_size;
+    return sum % size;
 }
 
-void inserare(struct hashtable *table, char *nume, int an, int luna, int ziua)
+size_t sum_ASCII (char *nume)
 {
-    int i = hash(nume, table->size);
-    struct node *nod = malloc(sizeof(struct node));
+    int sum = 0;
+    for (int i = 0 ; i < strlen(nume) ; i++)
+    {
+        sum += nume[i];
+    }
+    return sum;
+}
+
+void inserare (struct hashtable *table, char *nume, int an, int luna, int ziua, int n)
+{
+    int index = hash(nume, n);
+    struct node *nod = malloc (sizeof(struct node));
     strcpy(nod->nume, nume);
     nod->an = an;
     nod->luna = luna;
     nod->ziua = ziua;
-    if (2024 - an < 18)
+    if (2024 - an <= 17)
     {
         nod->major = 0;
     }
-    else if (2024 - an > 18)
+    else if (2024 - an >= 19)
     {
         nod->major = 1;
     }
@@ -50,7 +59,7 @@ void inserare(struct hashtable *table, char *nume, int an, int luna, int ziua)
         }
         else
         {
-            if (ziua >= 17)
+            if (ziua >= 18)
             {
                 nod->major = 0;
             }
@@ -61,13 +70,13 @@ void inserare(struct hashtable *table, char *nume, int an, int luna, int ziua)
         }
     }
     nod->next = NULL;
-    if (table->entries[i] == NULL)
+    if (table->entries[index] == NULL)
     {
-        table->entries[i] = nod;
+        table->entries[index] = nod;
     }
     else
     {
-        struct node *tmp = table->entries[i];
+        struct node *tmp = table->entries[index];
         while (tmp->next != NULL)
         {
             tmp = tmp->next;
@@ -76,22 +85,22 @@ void inserare(struct hashtable *table, char *nume, int an, int luna, int ziua)
     }
 }
 
-void afisare (struct hashtable *table)
+void afisare (struct hashtable *table, int n)
 {
-    for (int i = 0 ; i < table->size ; i++)
+    for (int i = 0 ; i < n ; i++)
     {
         if (table->entries[i] != NULL)
         {
             struct node *tmp = table->entries[i];
             while (tmp != NULL)
             {
-                if (tmp->major == 1)
+                if (tmp->major == 0)
                 {
-                    printf ("%s %d %d %d\n", tmp->nume, tmp->an, tmp->luna, tmp->ziua);
+                    printf ("%s Minor\n", tmp->nume);
                 }
                 else
                 {
-                    printf ("%s Minor\n", tmp->nume);
+                    printf ("%s %d %d %d\n", tmp->nume, tmp->an, tmp->luna, tmp->ziua);   
                 }
                 tmp = tmp->next;
             }
@@ -99,25 +108,74 @@ void afisare (struct hashtable *table)
     }
 }
 
+void verificare_asem (struct hashtable *table, char *nume, int n)
+{
+    int i = hash (nume, n);
+    if (table->entries[i] == NULL)
+    {
+        printf ("Nu exista useri similari");
+    }
+    else
+    {
+        int c1 = 0;
+        int c2 = 0;
+        struct node *tmp = table->entries[i];
+        int x = sum_ASCII(nume);
+        while (tmp != NULL)
+        {
+            int y = sum_ASCII(tmp->nume);
+            {
+                if (x != y)
+                {
+                    c1++;
+                    c2++;
+                }
+                else
+                {
+                    printf ("%s ", tmp->nume);
+                    c1++;
+                }
+            }
+            tmp = tmp->next;
+        }
+        if (c1 == c2)
+        {
+            printf ("Nu exista useri similari");
+        }
+        printf ("\n");
+    }
+}
+
 int main()
 {
     int n, nr_utilizatori;
-    scanf ("%d %d", &n, &nr_utilizatori);
-    struct hashtable *table = malloc(sizeof(struct hashtable));
-    table->size = n;
-    table->entries = malloc(n * sizeof(struct node));
+    scanf("%d %d", &n, &nr_utilizatori);
     int an, luna, ziua;
     char nume[30];
+    struct hashtable *table = malloc(sizeof(struct hashtable));
+    table->entries = malloc (n * sizeof(struct node));
     for (int i = 0 ; i < nr_utilizatori ; i++)
     {
-        scanf("%s %d %d %d", nume, &an, &luna, &ziua);
-        inserare(table, nume, an, luna, ziua);
+        scanf ("%s %d %d %d", nume, &an, &luna, &ziua);
+        inserare (table, nume, an, luna, ziua, n);
     }
     int test;
     scanf ("%d", &test);
     if (test == 1)
     {
-        afisare(table);
+        afisare(table, n);
+    }
+    if (test == 2)
+    {
+        char sir1[30];
+        char sir2[30];
+        char sir3[30];
+        scanf ("%s", sir1);
+        scanf ("%s", sir2);
+        scanf ("%s", sir3);
+        verificare_asem (table, sir1, n);
+        verificare_asem (table, sir2, n);
+        verificare_asem (table, sir3, n);
     }
     return 0;
 }
